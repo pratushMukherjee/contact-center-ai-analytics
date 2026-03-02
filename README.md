@@ -32,7 +32,7 @@ A multi-agent AI analytics engine for contact center data, built with **Java 17*
 
 ## How It Works
 
-1. **User submits a natural language query** via REST API
+1. **User submits a natural language query** via the web dashboard or REST API
 2. **QueryPlannerAgent** decomposes the question using Chain-of-Thought prompting
 3. **DataRetrieverAgent** translates the plan into JPA queries against contact center data
 4. **AnalysisAgent** interprets patterns, trends, and anomalies in the results
@@ -79,6 +79,10 @@ mvnw.cmd spring-boot:run
 ```
 
 ### Try It
+
+Open **http://localhost:8080** in your browser to use the interactive dashboard — type a question and click **Analyze** to see the full ReAct agent pipeline in action.
+
+Or use the API directly:
 ```bash
 # Health check
 curl http://localhost:8080/api/v1/health
