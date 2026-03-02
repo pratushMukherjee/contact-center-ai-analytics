@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Center AI Analytics</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b1221; color: #e0e6ed; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #0e72ed 0%, #2d8cff 100%); padding: 24px 40px; display: flex; align-items: center; gap: 16px; }
+        .header h1 { font-size: 22px; font-weight: 600; color: white; }
+        .header .badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 12px; color: white; }
+        .container { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+        .query-box { background: #151d2e; border: 1px solid #253049; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+        .query-box label { font-size: 14px; color: #8899aa; margin-bottom: 8px; display: block; }
+        .input-row { display: flex; gap: 12px; }
+        .query-box input { flex: 1; background: #0b1221; border: 1px solid #253049; border-radius: 8px; padding: 12px 16px; color: #e0e6ed; font-size: 15px; outline: none; }
+        .query-box input:focus { border-color: #2d8cff; }
+        .query-box input::placeholder { color: #4a5568; }
+        .btn { background: #0e72ed; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 500; white-space: nowrap; }
+        .btn:hover { background: #0a5cc7; }
+        .btn:disabled { background: #253049; cursor: wait; }
+        .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .example-btn { background: #1a2538; border: 1px solid #253049; color: #8899aa; padding: 6px 14px; border-radius: 16px; font-size: 12px; cursor: pointer; }
+        .example-btn:hover { border-color: #2d8cff; color: #2d8cff; }
+        .result { background: #151d2e; border: 1px solid #253049; border-radius: 12px; padding: 24px; margin-bottom: 24px; display: none; }
+        .result.visible { display: block; }
+        .insight-text { font-size: 16px; line-height: 1.7; color: #e0e6ed; margin-bottom: 20px; }
+        .steps-title { font-size: 13px; color: #8899aa; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .step { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #1a2538; }
+        .step:last-child { border-bottom: none; }
+        .step-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+        .step-icon.planner { background: #1a3a5c; color: #4da6ff; }
+        .step-icon.retriever { background: #1a3c2a; color: #4dff91; }
+        .step-icon.analyzer { background: #3c2a1a; color: #ffaa4d; }
+        .step-icon.summarizer { background: #2a1a3c; color: #b44dff; }
+        .step-info { flex: 1; }
+        .step-agent { font-size: 13px; font-weight: 600; color: #e0e6ed; }
+        .step-thought { font-size: 12px; color: #6b7a8d; margin-top: 2px; }
+        .step-meta { font-size: 11px; color: #4a5568; margin-top: 4px; }
+        .meta-bar { display: flex; gap: 20px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #1a2538; }
+        .meta-item { font-size: 12px; color: #6b7a8d; }
+        .meta-item span { color: #2d8cff; font-weight: 600; }
+        .loading { text-align: center; padding: 40px; color: #6b7a8d; display: none; }
+        .loading.visible { display: block; }
+        .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #253049; border-top-color: #2d8cff; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .stat-card { background: #151d2e; border: 1px solid #253049; border-radius: 10px; padding: 16px; }
+        .stat-value { font-size: 28px; font-weight: 700; color: #2d8cff; }
+        .stat-label { font-size: 12px; color: #6b7a8d; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Contact Center AI Analytics</h1>
+        <span class="badge">ReAct Multi-Agent System</span>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="stat-value" id="statQueries">0</div><div class="stat-label">Queries Processed</div></div>
+            <div class="stat-card"><div class="stat-value" id="statAgents">4</div><div class="stat-label">AI Agents</div></div>
+            <div class="stat-card"><div class="stat-value" id="statRecords">138</div><div class="stat-label">Call Records</div></div>
+            <div class="stat-card"><div class="stat-value" id="statQueues">3</div><div class="stat-label">Queues Monitored</div></div>
+        </div>
+
+        <div class="query-box">
+            <label>Ask a question about your contact center data</label>
+            <div class="input-row">
+                <input type="text" id="queryInput" placeholder="e.g. Which agents had the highest handle time last week?" />
+                <button class="btn" id="submitBtn" onclick="submitQuery()">Analyze</button>
+            </div>
+            <div class="examples">
+                <button class="example-btn" onclick="setQuery('Which agents had the highest handle time last week?')">Handle Time</button>
+                <button class="example-btn" onclick="setQuery('What are the CSAT trends for the Support queue?')">CSAT Trends</button>
+                <button class="example-btn" onclick="setQuery('Show me the disposition breakdown by queue')">Dispositions</button>
+                <button class="example-btn" onclick="setQuery('Which queue has the worst service level?')">Service Level</button>
+                <button class="example-btn" onclick="setQuery('Who are the top performing agents?')">Top Agents</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>AI agents are analyzing your data...</div>
+            <div style="font-size:12px; margin-top:8px; color:#4a5568;">Planner → Retriever → Analyzer → Summarizer</div>
+        </div>
+
+        <div class="result" id="result">
+            <div class="insight-text" id="insightText"></div>
+            <div class="steps-title">ReAct Agent Pipeline</div>
+            <div id="stepsContainer"></div>
+            <div class="meta-bar" id="metaBar"></div>
+        </div>
+    </div>
+
+    <script>
+        let queryCount = 0;
+
+        function setQuery(text) {
+            document.getElementById('queryInput').value = text;
+            document.getElementById('queryInput').focus();
+        }
+
+        document.getElementById('queryInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') submitQuery();
+        });
+
+        async function submitQuery() {
+            const input = document.getElementById('queryInput');
+            const query = input.value.trim();
+            if (!query) return;
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Analyzing...';
+            document.getElementById('loading').classList.add('visible');
+            document.getElementById('result').classList.remove('visible');
+
+            try {
+                const res = await fetch('/api/v1/analytics/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                const data = await res.json();
+                displayResult(data);
+                queryCount++;
+                document.getElementById('statQueries').textContent = queryCount;
+            } catch (err) {
+                document.getElementById('insightText').textContent = 'Error: ' + err.message;
+                document.getElementById('result').classList.add('visible');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Analyze';
+                document.getElementById('loading').classList.remove('visible');
+            }
+        }
+
+        function displayResult(data) {
+            document.getElementById('insightText').textContent = data.insight || 'No insight generated.';
+
+            const stepsContainer = document.getElementById('stepsContainer');
+            stepsContainer.innerHTML = '';
+
+            const iconClasses = { QueryPlanner: 'planner', DataRetriever: 'retriever', Analyzer: 'analyzer', Summarizer: 'summarizer' };
+            const iconLetters = { QueryPlanner: 'P', DataRetriever: 'R', Analyzer: 'A', Summarizer: 'S' };
+
+            (data.steps || []).forEach(step => {
+                const cls = iconClasses[step.agent] || 'planner';
+                const letter = iconLetters[step.agent] || '?';
+                const div = document.createElement('div');
+                div.className = 'step';
+                div.innerHTML = `
+                    <div class="step-icon ${cls}">${letter}</div>
+                    <div class="step-info">
+                        <div class="step-agent">${step.agent}</div>
+                        <div class="step-thought">${step.thought || ''}</div>
+                        <div class="step-meta">${step.durationMs}ms &middot; ${step.tokensUsed} tokens</div>
+                    </div>`;
+                stepsContainer.appendChild(div);
+            });
+
+            const meta = data.metadata || {};
+            document.getElementById('metaBar').innerHTML = `
+                <div class="meta-item">Total: <span>${meta.totalDurationMs || 0}ms</span></div>
+                <div class="meta-item">Tokens: <span>${meta.tokensUsed || 0}</span></div>
+                <div class="meta-item">Steps: <span>${meta.reactIterations || 0}</span></div>
+                <div class="meta-item">Model: <span>${meta.model || 'N/A'}</span></div>`;
+
+            document.getElementById('result').classList.add('visible');
+        }
+    </script>
+</body>
+</html>
