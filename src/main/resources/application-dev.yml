@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+
+logging:
+  level:
+    com.zoom.ccai: DEBUG
+    org.springframework.ai: DEBUG
